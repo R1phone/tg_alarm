@@ -52,7 +52,7 @@ const KEY_ALERT = "tg_alert_state";
 function getEnvConfig(env) {
   return {
     MATTERMOST_WEBHOOK: "https://mm.mvpproject.io/hooks/1q715bsjzina5enz98x43bj7gc",
-    BOT_TOKEN: "17564679631:AAFuJ4286u2r2EL-_0q7SgYmt_TdfdLoi2w",
+    BOT_TOKEN: "7564679631:AAFuJ4286u2r2EL-_0q7SgYmt_TdfdLoi2w",
     TEST_CHAT_ID: "855257187",
     MIN_CONSECUTIVE_FAILURES: parseInt(env.MIN_CONSECUTIVE_FAILURES || "2"),
     CHECK_HOST_MAX_NODES: parseInt(env.CHECK_HOST_MAX_NODES || "5"),
@@ -262,12 +262,14 @@ async function handleScheduled(env) {
     // Принятие решения об алерте
     const shouldAlert = testShouldAlert(signals);
     console.log(`Should alert: ${shouldAlert}`);
+    console.log(`Signals:`, JSON.stringify(signals));
 
     // Работа с состоянием в KV
     let state = null;
     try {
       const raw = await env.STATUS_KV.get(KEY_ALERT);
       state = raw ? JSON.parse(raw) : null;
+      console.log(`KV state:`, JSON.stringify(state));
     } catch (e) {
       console.error("KV read error:", e.message);
       state = null;
@@ -278,10 +280,11 @@ async function handleScheduled(env) {
     consecutiveFails = shouldAlert ? consecutiveFails + 1 : 0;
     const willAlert = consecutiveFails >= config.MIN_CONSECUTIVE_FAILURES;
 
-    console.log(`Previous alert: ${prevAlert}, consecutive fails: ${consecutiveFails}, will alert: ${willAlert}`);
+    console.log(`Previous alert: ${prevAlert}, consecutive fails: ${consecutiveFails}, will alert: ${willAlert}, min required: ${config.MIN_CONSECUTIVE_FAILURES}`);
 
     // Отправка уведомлений
     if (willAlert && !prevAlert) {
+      console.log("SENDING ALERT NOTIFICATION");
       const text = [
         "**⚠️ Telegram outage detected**", 
         `Detected at: ${new Date(now).toISOString()}`
@@ -290,8 +293,12 @@ async function handleScheduled(env) {
         text.push(`• ${s.source}: ${s.problem ? "PROBLEM" : "ok"} (${s.detail})`);
       }
       const message = text.join("\n");
+      console.log("Alert message:", message);
       
+      console.log("Sending to Mattermost...");
       await sendMattermost(config.MATTERMOST_WEBHOOK, message);
+      
+      console.log("Sending to Telegram...");
       await sendTelegram(config.BOT_TOKEN, config.TEST_CHAT_ID, message);
       
       try {
@@ -353,3 +360,4 @@ async function handleScheduled(env) {
     console.error("handleScheduled error:", e.message, e.stack);
   }
 }
+
