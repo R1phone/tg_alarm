@@ -24,9 +24,9 @@ function short(s, n) {
 function stripTags(html) {
   if (!html) return "";
   return html
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<\/?[^>]+(>|$)/g, "");
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+    .replace(/<[^>]+>/g, "");
 }
 
 async function sendMattermost(webhook, text) {
