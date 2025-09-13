@@ -7,7 +7,7 @@ binding = "STATUS_KV"
 id = "9de9716fc76f436c8bae8e31a7756d20"
 
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["*/2 * * * *"]
 
 [vars]
 MIN_CONSECUTIVE_FAILURES = "2"
