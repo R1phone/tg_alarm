@@ -52,7 +52,7 @@ const KEY_ALERT = "tg_alert_state";
 function getEnvConfig(env) {
   return {
     MATTERMOST_WEBHOOK: "https://mm.mvpproject.io/hooks/1q715bsjzina5enz98x43bj7gc",
-    BOT_TOKEN: "7564679631:AAFuJ4286u2r2EL-_0q7SgYmt_TdfdLoi2w",
+    BOT_TOKEN: "17564679631:AAFuJ4286u2r2EL-_0q7SgYmt_TdfdLoi2w",
     TEST_CHAT_ID: "855257187",
     MIN_CONSECUTIVE_FAILURES: parseInt(env.MIN_CONSECUTIVE_FAILURES || "2"),
     CHECK_HOST_MAX_NODES: parseInt(env.CHECK_HOST_MAX_NODES || "5"),
