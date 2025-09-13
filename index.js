@@ -6,15 +6,15 @@ export default {
 
 const KEY_ALERT = "tg_alert_state";
 
-// !!! ПОДСТАВЬ СВОИ СЕКРЕТЫ В ENV !!!
+// Креды прямо в коде
 const ENV = {
-  MATTERMOST_WEBHOOK: "<https://mm.mvpproject.io/hooks/1q715bsjzina5enz98x43bj7gc>",
-  BOT_TOKEN: "<7564679631:AAFW9v0LAO_6jFJVbIcOhIB-5g7mj6Oc8XA>",
-  TEST_CHAT_ID: "<Вставь сюда chat_id, если хочешь тестовые сообщения>",
+  MATTERMOST_WEBHOOK: "https://mm.mvpproject.io/hooks/1q715bsjzina5enz98x43bj7gc",  // Проверь, что это твой реальный вебхук
+  BOT_TOKEN: "7564679631:AAFW9v0LAO_6jFJVbIcOhIB-5g7mj6Oc8XA",  // Проверь, что это твой реальный токен
+  TEST_CHAT_ID: "<вставь_реальный_chat_id>",  // Замени на реальный chat_id (например, через @userinfobot)
   MIN_CONSECUTIVE_FAILURES: 2,
   CHECK_HOST_MAX_NODES: 5,
   CHECK_HOST_FAIL_NODES: 2,
-  MAX_RESPONSE_TIME_MS: 2000, // Максимально допустимое время ответа (2 сек)
+  MAX_RESPONSE_TIME_MS: 2000,
 };
 
 function short(s, n) { if (!s) return ""; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
@@ -31,7 +31,6 @@ async function sendMattermost(webhook, text) {
   }
 }
 
-// Базовая функция тестирования
 function testShouldAlert(signals) {
   const apiGetMeOk = !signals.find(s => s.source === "getMe" && s.problem);
   const multiFail = signals.find(s => s.source === "check-host" && s.problem);
