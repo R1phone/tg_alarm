@@ -23,10 +23,8 @@ function short(s, n) {
 
 function stripTags(html) {
   if (!html) return "";
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-    .replace(/<[^>]+>/g, "");
+  // Упрощённая версия: убираем только основные теги
+  return html.replace(/<[^>]*>/g, "");
 }
 
 async function sendMattermost(webhook, text) {
@@ -191,6 +189,8 @@ async function handleScheduled(env) {
   await env.STATUS_KV.put(KEY_ALERT, JSON.stringify({ alerting: prevAlert || false, since: state && state.since ? state.since : now, consecutiveFails }));
   console.log(`State updated: alerting=${prevAlert || false}, consecutiveFails=${consecutiveFails}`);
 }
+
+
 
 
 
