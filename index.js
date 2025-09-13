@@ -9,25 +9,6 @@ export default {
   
   async fetch(request, env, ctx) {
     try {
-      const url = new URL(request.url);
-      
-      // Тестовый endpoint для проверки уведомлений
-      if (url.pathname === '/test-alert') {
-        const config = getEnvConfig(env);
-        const now = Date.now();
-        const testMessage = [
-          "**🧪 TEST ALERT**",
-          `Test sent at: ${new Date(now).toISOString()}`,
-          "• This is a test notification",
-          "• If you see this, alerts are working!"
-        ].join("\n");
-        
-        await sendMattermost(config.MATTERMOST_WEBHOOK, testMessage);
-        await sendTelegram(config.BOT_TOKEN, config.TEST_CHAT_ID, testMessage);
-        
-        return new Response("Test alert sent!", { status: 200 });
-      }
-      
       const state = await env.STATUS_KV.get(KEY_ALERT);
       const stateObj = state ? JSON.parse(state) : { alerting: false };
       
@@ -353,6 +334,7 @@ async function handleScheduled(env) {
     console.error("handleScheduled error:", e.message, e.stack);
   }
 }
+
 
 
 
