@@ -9,7 +9,7 @@ const KEY_ALERT = "tg_alert_state";
 const ENV = {
   MATTERMOST_WEBHOOK: "https://mm.mvpproject.io/hooks/1q715bsjzina5enz98x43bj7gc",
   BOT_TOKEN: "7564679631:AAFuJ4286u2r2EL-_0q7SgYmt_TdfdLoi2w",
-  TEST_CHAT_ID: "855257187",  // Твой chat_id для личного чата
+  TEST_CHAT_ID: "855257187",  // Твой chat_id
   MIN_CONSECUTIVE_FAILURES: 2,
   CHECK_HOST_MAX_NODES: 5,
   CHECK_HOST_FAIL_NODES: 2,
@@ -30,12 +30,30 @@ async function sendMattermost(webhook, text) {
   }
 }
 
+async function sendTelegram(botToken, chatId, text) {
+  if (!botToken || !chatId) return;
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text })
+    });
+    const j = await r.json().catch(() => null);
+    if (r.ok && j && j.ok) {
+      console.log("Telegram notification sent successfully");
+    } else {
+      console.warn(`Telegram sendMessage failed: status=${r.status}`);
+    }
+  } catch (e) {
+    console.error(`Telegram sendMessage error: ${e.message}`);
+  }
+}
+
 function testShouldAlert(signals) {
   const apiGetMeOk = !signals.find(s => s.source === "getMe" && s.problem);
   const multiFail = signals.find(s => s.source === "check-host" && s.problem);
   const webFails = signals.filter(s => s.source.includes("web.telegram.org") || s.source.includes("telegram.org") && s.problem).length;
-  const sendFail = signals.find(s => s.source === "sendMessage" && s.problem);
-  return !apiGetMeOk || (multiFail && (webFails > 0 || sendFail));
+  return !apiGetMeOk || (multiFail && webFails > 0);
 }
 
 async function handleScheduled(env) {
@@ -122,33 +140,6 @@ async function handleScheduled(env) {
     }
   }
 
-  // 4) (optional) sendMessage test
-  let sendFail = false;
-  if (ENV.TEST_CHAT_ID) {
-    try {
-      const start = Date.now();
-      const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: ENV.TEST_CHAT_ID, text: "tg-monitor test" })
-      });
-      const responseTime = Date.now() - start;
-      const j = await r.json().catch(() => null);
-      if (!r.ok || !j || !j.ok || responseTime > ENV.MAX_RESPONSE_TIME_MS) {
-        sendFail = true;
-        signals.push({ source: "sendMessage", problem: true, detail: `status=${r.status}, time=${responseTime}ms` });
-        console.warn(`sendMessage: Failed, status=${r.status}, time=${responseTime}ms`);
-      } else {
-        signals.push({ source: "sendMessage", problem: false, detail: `status=${r.status}, time=${responseTime}ms` });
-        console.log(`sendMessage: Success, status=${r.status}, time=${responseTime}ms`);
-      }
-    } catch (e) {
-      sendFail = true;
-      signals.push({ source: "sendMessage", problem: true, detail: `error=${e.message}` });
-      console.error(`sendMessage: Error - ${e.message}`);
-    }
-  }
-
   // DECISION
   const shouldAlert = testShouldAlert(signals);
 
@@ -166,19 +157,23 @@ async function handleScheduled(env) {
   consecutiveFails = shouldAlert ? consecutiveFails + 1 : 0;
   const willAlert = consecutiveFails >= ENV.MIN_CONSECUTIVE_FAILURES;
 
-  // send alert / recovery
+  // Send alerts to Mattermost and Telegram
   if (willAlert && !prevAlert) {
     const text = ["**⚠️ Telegram outage detected**", `Detected at: ${new Date(now).toISOString()}`];
     for (const s of signals) text.push(`• ${s.source}: ${s.problem ? "PROBLEM" : "ok"} (${s.detail})`);
-    await sendMattermost(ENV.MATTERMOST_WEBHOOK, text.join("\n"));
+    const message = text.join("\n");
+    await sendMattermost(ENV.MATTERMOST_WEBHOOK, message);
+    await sendTelegram(ENV.BOT_TOKEN, ENV.TEST_CHAT_ID, message);
     await env.STATUS_KV.put(KEY_ALERT, JSON.stringify({ alerting: true, since: now, consecutiveFails }));
     console.log("Alert sent: Telegram outage detected");
     return;
   }
   if (!willAlert && prevAlert) {
-    const text = ["**✅ Telegram recovered**", `Detected at: ${new Date(now).toISOString()}`];
+    const text = ["**✅ Telegram recovered**", `Recovered at: ${new Date(now).toISOString()}`];
     for (const s of signals) text.push(`• ${s.source}: ${s.problem ? "PROBLEM" : "ok"} (${s.detail})`);
-    await sendMattermost(ENV.MATTERMOST_WEBHOOK, text.join("\n"));
+    const message = text.join("\n");
+    await sendMattermost(ENV.MATTERMOST_WEBHOOK, message);
+    await sendTelegram(ENV.BOT_TOKEN, ENV.TEST_CHAT_ID, message);
     await env.STATUS_KV.put(KEY_ALERT, JSON.stringify({ alerting: false, since: now, consecutiveFails }));
     console.log("Alert sent: Telegram recovered");
     return;
@@ -186,3 +181,7 @@ async function handleScheduled(env) {
   await env.STATUS_KV.put(KEY_ALERT, JSON.stringify({ alerting: prevAlert || false, since: state && state.since ? state.since : now, consecutiveFails }));
   console.log(`State updated: alerting=${prevAlert || false}, consecutiveFails=${consecutiveFails}`);
 }
+
+
+
+
