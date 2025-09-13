@@ -9,7 +9,7 @@ const KEY_ALERT = "tg_alert_state";
 const ENV = {
   MATTERMOST_WEBHOOK: "https://mm.mvpproject.io/hooks/1q715bsjzina5enz98x43bj7gc",
   BOT_TOKEN: "7564679631:AAFuJ4286u2r2EL-_0q7SgYmt_TdfdLoi2w",
-  TEST_CHAT_ID: "855257187",  // Твой chat_id
+  TEST_CHAT_ID: "855257187",
   MIN_CONSECUTIVE_FAILURES: 2,
   CHECK_HOST_MAX_NODES: 5,
   CHECK_HOST_FAIL_NODES: 2,
@@ -17,7 +17,9 @@ const ENV = {
 };
 
 function short(s, n) { if (!s) return ""; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
-function stripTags(html) { return (html || "").replace(/<script[\s\S]*?</script>/gi, "").replace(/<style[\s\S]*?</style>/gi, "").replace(/</?[^>]+(>|$)/g, ""); }
+function stripTags(html) { 
+  return (html || "").replace(/<script[\s\S]*?><\/script>/gi, "").replace(/<style[\s\S]*?><\/style>/gi, "").replace(/<\/?[^>]+(>|$)/g, ""); 
+}
 
 async function sendMattermost(webhook, text) {
   if (!webhook) return;
@@ -181,6 +183,7 @@ async function handleScheduled(env) {
   await env.STATUS_KV.put(KEY_ALERT, JSON.stringify({ alerting: prevAlert || false, since: state && state.since ? state.since : now, consecutiveFails }));
   console.log(`State updated: alerting=${prevAlert || false}, consecutiveFails=${consecutiveFails}`);
 }
+
 
 
 
