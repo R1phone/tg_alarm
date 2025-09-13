@@ -16,9 +16,17 @@ const ENV = {
   MAX_RESPONSE_TIME_MS: 2000,
 };
 
-function short(s, n) { if (!s) return ""; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
-function stripTags(html) { 
-  return (html || "").replace(/<script[\s\S]*?><\/script>/gi, "").replace(/<style[\s\S]*?><\/style>/gi, "").replace(/<\/?[^>]+(>|$)/g, ""); 
+function short(s, n) {
+  if (!s) return "";
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+
+function stripTags(html) {
+  if (!html) return "";
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<\/?[^>]+(>|$)/g, "");
 }
 
 async function sendMattermost(webhook, text) {
