@@ -6,11 +6,10 @@ export default {
 
 const KEY_ALERT = "tg_alert_state";
 
-// Креды прямо в коде
 const ENV = {
-  MATTERMOST_WEBHOOK: "https://mm.mvpproject.io/hooks/1q715bsjzina5enz98x43bj7gc",  // Проверь, что это твой реальный вебхук
-  BOT_TOKEN: "7564679631:AAFW9v0LAO_6jFJVbIcOhIB-5g7mj6Oc8XA",  // Проверь, что это твой реальный токен
-  TEST_CHAT_ID: "<вставь_реальный_chat_id>",  // Замени на реальный chat_id (например, через @userinfobot)
+  MATTERMOST_WEBHOOK: "https://mm.mvpproject.io/hooks/1q715bsjzina5enz98x43bj7gc",
+  BOT_TOKEN: "7564679631:AAFuJ4286u2r2EL-_0q7SgYmt_TdfdLoi2w",
+  TEST_CHAT_ID: "855257187",  // Твой chat_id для личного чата
   MIN_CONSECUTIVE_FAILURES: 2,
   CHECK_HOST_MAX_NODES: 5,
   CHECK_HOST_FAIL_NODES: 2,
@@ -18,7 +17,7 @@ const ENV = {
 };
 
 function short(s, n) { if (!s) return ""; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
-function stripTags(html) { return (html || "").replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<\/?[^>]+(>|$)/g, ""); }
+function stripTags(html) { return (html || "").replace(/<script[\s\S]*?</script>/gi, "").replace(/<style[\s\S]*?</style>/gi, "").replace(/</?[^>]+(>|$)/g, ""); }
 
 async function sendMattermost(webhook, text) {
   if (!webhook) return;
@@ -177,7 +176,7 @@ async function handleScheduled(env) {
     return;
   }
   if (!willAlert && prevAlert) {
-    const text = ["**✅ Telegram recovered**", `Recovered at: ${new Date(now).toISOString()}`];
+    const text = ["**✅ Telegram recovered**", `Detected at: ${new Date(now).toISOString()}`];
     for (const s of signals) text.push(`• ${s.source}: ${s.problem ? "PROBLEM" : "ok"} (${s.detail})`);
     await sendMattermost(ENV.MATTERMOST_WEBHOOK, text.join("\n"));
     await env.STATUS_KV.put(KEY_ALERT, JSON.stringify({ alerting: false, since: now, consecutiveFails }));
