@@ -6,6 +6,25 @@ export default {
       console.error("Top-level scheduled error:", e.message, e.stack);
     }
   },
+  
+  async fetch(request, env, ctx) {
+    try {
+      const state = await env.STATUS_KV.get(KEY_ALERT);
+      const stateObj = state ? JSON.parse(state) : { alerting: false };
+      
+      return new Response(JSON.stringify({
+        status: "Telegram Monitor Active",
+        alerting: stateObj.alerting,
+        since: stateObj.since ? new Date(stateObj.since).toISOString() : null,
+        consecutiveFails: stateObj.consecutiveFails || 0,
+        lastCheck: new Date().toISOString()
+      }, null, 2), {
+        headers: { "Content-Type": "application/json" }
+      });
+    } catch (e) {
+      return new Response(`Error: ${e.message}`, { status: 500 });
+    }
+  }
 };
 
 const KEY_ALERT = "tg_alert_state";
