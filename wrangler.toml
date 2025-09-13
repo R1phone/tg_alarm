@@ -6,11 +6,11 @@ main = "index.js"
 binding = "STATUS_KV"
 id = "9de9716fc76f436c8bae8e31a7756d20"
 
-[[triggers]]
-schedule = "*/5 * * * *"
+[triggers]
+crons = ["*/5 * * * *"]
 
 [vars]
-MIN_CONSECUTIVE_FAILURES = 2
-CHECK_HOST_MAX_NODES = 5
-CHECK_HOST_FAIL_NODES = 2
-MAX_RESPONSE_TIME_MS = 2000
+MIN_CONSECUTIVE_FAILURES = "2"
+CHECK_HOST_MAX_NODES = "5"
+CHECK_HOST_FAIL_NODES = "2"
+MAX_RESPONSE_TIME_MS = "2000"
