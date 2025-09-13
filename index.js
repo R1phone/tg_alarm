@@ -243,7 +243,7 @@ async function handleScheduled(env) {
     for (const url of webTargets) {
       try {
         const start = Date.now();
-        const r = await fetch(url, { timeout: 10000 });
+        const r = await fetch(url);
         const responseTime = Date.now() - start;
         
         if (!r.ok || responseTime > config.MAX_RESPONSE_TIME_MS) {
