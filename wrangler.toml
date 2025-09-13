@@ -2,16 +2,13 @@ name = "tgalarm"
 compatibility_date = "2025-09-12"
 main = "index.js"
 
-# KV Namespace с твоим ID
 [[kv_namespaces]]
 binding = "STATUS_KV"
 id = "9de9716fc76f436c8bae8e31a7756d20"
 
-# Расписание каждые 5 минут
 [[triggers]]
 schedule = "*/5 * * * *"
 
-# Некритичные параметры
 [vars]
 MIN_CONSECUTIVE_FAILURES = 2
 CHECK_HOST_MAX_NODES = 5
